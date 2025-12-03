@@ -1,0 +1,66 @@
+name: Love2D Game - Cleanup Dokploy App on Branch Delete
+
+on:
+  delete:
+    branches:
+      - '**'
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    if: github.event.ref_type == 'branch'
+
+    steps:
+      - name: Generate application name
+        id: metadata
+        run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]' | tr '/' '-')
+          REPO=$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
+          PROJECT="love2d-game"
+          BRANCH=$(echo "${{ github.event.ref }}" | tr '/' '-')
+          APP_NAME="${OWNER}-${REPO}-${PROJECT}-${BRANCH}"
+
+          if [ ${#APP_NAME} -gt 63 ]; then
+            APP_NAME="${REPO}-${PROJECT}-${BRANCH}"
+          fi
+
+          echo "app_name=${APP_NAME}" >> $GITHUB_OUTPUT
+          echo "Deleted branch: ${BRANCH}"
+          echo "Application to delete: ${APP_NAME}"
+
+      - name: Delete Dokploy Application
+        env:
+          DOKPLOY_URL: ${{ vars.DOKPLOY_URL }}
+          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+          DOKPLOY_PROJECT_ID: ${{ vars.DOKPLOY_PROJECT_ID }}
+          DOKPLOY_ENVIRONMENT_ID: ${{ vars.DOKPLOY_ENVIRONMENT_ID }}
+          APP_NAME: ${{ steps.metadata.outputs.app_name }}
+        run: |
+          DOKPLOY_URL="${DOKPLOY_URL%/}"
+
+          # Find application
+          PROJECTS=$(curl -s -X 'GET' \
+            "${DOKPLOY_URL}/api/project.all" \
+            -H 'accept: application/json' \
+            -H "x-api-key: ${DOKPLOY_API_KEY}")
+
+          APP_ID=$(echo "$PROJECTS" | jq -r --arg name "$APP_NAME" '
+            .[] | select(.projectId == env.DOKPLOY_PROJECT_ID) |
+            .environments[]? | select(.environmentId == env.DOKPLOY_ENVIRONMENT_ID) |
+            .applications[]? | select(.name == $name) | .applicationId
+          ' | head -n1)
+
+          if [ -n "$APP_ID" ] && [ "$APP_ID" != "null" ]; then
+            echo "Deleting application: ${APP_ID}"
+
+            curl -s -X 'POST' \
+              "${DOKPLOY_URL}/api/trpc/application.delete" \
+              -H 'accept: application/json' \
+              -H 'Content-Type: application/json' \
+              -H "x-api-key: ${DOKPLOY_API_KEY}" \
+              -d "{\"json\": {\"applicationId\": \"${APP_ID}\"}}"
+
+            echo "Application deleted successfully"
+          else
+            echo "Application not found, nothing to delete"
+          fi
