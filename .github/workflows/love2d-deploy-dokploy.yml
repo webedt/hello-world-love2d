@@ -153,9 +153,10 @@ jobs:
 
               # Create domain
               DOMAIN="github.etdofresh.com"
-              REPOSITORY="${{ steps.metadata.outputs.repository }}"
+              OWNER="${{ github.repository_owner }}"
+              REPO="${{ github.event.repository.name }}"
               BRANCH="${{ steps.metadata.outputs.branch }}"
-              PATH_PREFIX="/${REPOSITORY}/${BRANCH}/"
+              PATH_PREFIX="/${OWNER}/${REPO}/${BRANCH}/"
 
               curl -s -X 'POST' \
                 "${DOKPLOY_URL}/api/trpc/domain.create" \
