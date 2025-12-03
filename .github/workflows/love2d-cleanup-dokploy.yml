@@ -14,13 +14,12 @@ jobs:
       - name: Generate application name
         id: metadata
         run: |
-          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]' | tr '/' '-')
-          REPO=$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
-          BRANCH=$(echo "${{ github.event.ref }}" | tr '/' '-')
-          APP_NAME="${OWNER}-${REPO}-${BRANCH}"
+          REPOSITORY=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]' | tr '/' '-')
+          BRANCH=$(echo "${{ github.event.ref }}" | tr '[:upper:]' '[:lower:]' | tr '/' '-')
+          APP_NAME="${REPOSITORY}-${BRANCH}"
 
           if [ ${#APP_NAME} -gt 63 ]; then
-            APP_NAME="${REPO}-${BRANCH}"
+            APP_NAME=$(echo "${APP_NAME}" | cut -c1-63)
           fi
 
           echo "app_name=${APP_NAME}" >> $GITHUB_OUTPUT
