@@ -16,12 +16,11 @@ jobs:
         run: |
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]' | tr '/' '-')
           REPO=$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
-          PROJECT="love2d-game"
           BRANCH=$(echo "${{ github.event.ref }}" | tr '/' '-')
-          APP_NAME="${OWNER}-${REPO}-${PROJECT}-${BRANCH}"
+          APP_NAME="${OWNER}-${REPO}-${BRANCH}"
 
           if [ ${#APP_NAME} -gt 63 ]; then
-            APP_NAME="${REPO}-${PROJECT}-${BRANCH}"
+            APP_NAME="${REPO}-${BRANCH}"
           fi
 
           echo "app_name=${APP_NAME}" >> $GITHUB_OUTPUT

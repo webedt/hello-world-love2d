@@ -39,9 +39,6 @@ jobs:
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]' | tr '/' '-')
           REPO=$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
 
-          # For monorepo, add project name
-          PROJECT="love2d-game"
-
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             BRANCH=$(echo "${{ github.head_ref }}" | tr '/' '-')
           else
@@ -49,23 +46,18 @@ jobs:
           fi
 
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-          APP_NAME="${OWNER}-${REPO}-${PROJECT}-${BRANCH}"
+          APP_NAME="${OWNER}-${REPO}-${BRANCH}"
 
           # DNS subdomain limit is 63 characters
           if [ ${#APP_NAME} -gt 63 ]; then
-            APP_NAME="${REPO}-${PROJECT}-${BRANCH}"
-          fi
-          if [ ${#APP_NAME} -gt 63 ]; then
-            APP_NAME="${REPO}-${PROJECT}"
+            APP_NAME="${REPO}-${BRANCH}"
           fi
 
           echo "owner=${OWNER}" >> $GITHUB_OUTPUT
           echo "repo=${REPO}" >> $GITHUB_OUTPUT
-          echo "project=${PROJECT}" >> $GITHUB_OUTPUT
           echo "branch=${BRANCH}" >> $GITHUB_OUTPUT
           echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
           echo "app_name=${APP_NAME}" >> $GITHUB_OUTPUT
-          echo "domain_name=${APP_NAME}" >> $GITHUB_OUTPUT
 
           echo "App Name: ${APP_NAME}"
 
@@ -168,7 +160,7 @@ jobs:
                 }"
 
               # Create domain
-              DOMAIN="your-domain.com"
+              DOMAIN="github.etdofresh.com"
               OWNER="${{ steps.metadata.outputs.owner }}"
               REPO="${{ steps.metadata.outputs.repo }}"
               BRANCH="${{ steps.metadata.outputs.branch }}"
