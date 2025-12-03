@@ -28,7 +28,8 @@ ARG GAME_MEMORY=33554432
 
 RUN love.js ./game ./dist \
     --title "${GAME_TITLE}" \
-    --memory ${GAME_MEMORY}
+    --memory ${GAME_MEMORY} \
+    --compatibility
 
 # ============================================
 # Stage 2: Serve with nginx
